@@ -1,67 +1,118 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
+let todoList = [];
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Todo List - Irawan</title>
+function validateForm() {
+  const todoInput = document.getElementById('todo-input').value.trim();
+  const dateInput = document.getElementById('date-input').value;
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  if (todoInput === '' || dateInput === '') {
+    alert('Please enter a task and a due date.');
+  } else {
+    addTodo(todoInput, dateInput);
+    document.getElementById('todo-input').value = '';
+    document.getElementById('date-input').value = '';
+  }
+}
 
-  <!-- External CSS -->
-  <link rel="stylesheet" href="css/style.css" />
-</head>
+function addTodo(task, date) {
+  const todoItem = {
+    task: task,
+    date: date,
+    status: 'Pending',
+  };
+  todoList.push(todoItem);
+  displayTodos();
+}
 
-<body class="bg-[#0b1120] text-white">
+function displayTodos() {
+  const tableBody = document.getElementById('todo-list');
+  tableBody.innerHTML = '';
 
-  <main class="flex justify-center items-center min-h-screen">
-    <div class="bg-[#1f2937] p-8 rounded-2xl w-full max-w-xl shadow-xl">
-      <h2 class="text-white text-2xl font-bold mb-6 text-center">Todo List</h2>
+  if (todoList.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="text-center text-gray-500 py-4">No task found.</td>
+      </tr>`;
+    return;
+  }
 
-      <!-- Form -->
-      <form id="todo-form" class="flex flex-col md:flex-row gap-4 mb-4">
-        <input type="text" id="todo-input" placeholder="Add a task..." class="bg-[#111827] text-white p-3 rounded-md w-full outline-none" />
-        <input type="date" id="date-input" class="bg-[#111827] text-white p-3 rounded-md w-full outline-none" />
-        <button type="button" onclick="validateForm();" class="bg-[#6366f1] hover:bg-indigo-600 text-white px-4 py-2 rounded-md">
-          +
+  todoList.forEach((item, index) => {
+    const row = document.createElement('tr');
+    row.className = 'border-b border-gray-700 text-sm';
+
+    row.innerHTML = `
+      <td class="py-2 px-3">${item.task}</td>
+      <td class="py-2 px-3">${item.date}</td>
+      <td class="py-2 px-3">${item.status}</td>
+      <td class="py-2 px-3">
+        <button onclick="deleteTodo(${index})" class="text-red-400 hover:text-red-600 text-sm">
+          🗑️
         </button>
-      </form>
+      </td>
+    `;
 
-      <!-- Action Buttons -->
-      <div class="flex justify-between mb-4">
-        <button id="filter-button" class="bg-[#4b5563] hover:bg-gray-600 text-white px-4 py-2 rounded-md">
-            <input type="date" id="filter-date" onchange="filterByDate()" class="mt-2 bg-[#111827] text-white p-2 rounded-md hidden w-full" />
-          FILTER
+    tableBody.appendChild(row);
+  });
+}
+
+function deleteTodo(index) {
+  todoList.splice(index, 1);
+  displayTodos();
+}
+
+function clearTodos() {
+  todoList = [];
+  displayTodos();
+}
+
+// ✅ GANTI: Tombol FILTER sekarang munculin input tanggal
+document.getElementById('filter-button').addEventListener('click', function () {
+  const filterInput = document.getElementById('filter-date');
+  if (filterInput) {
+    filterInput.classList.toggle('hidden');
+  }
+});
+
+// ✅ NEW: Filter berdasarkan tanggal
+function filterByDate() {
+  const selectedDate = document.getElementById('filter-date').value;
+
+  if (!selectedDate) {
+    displayTodos();
+    return;
+  }
+
+  const filtered = todoList.filter(item => item.date === selectedDate);
+  renderFilteredTodos(filtered);
+}
+
+function renderFilteredTodos(filteredList) {
+  const tableBody = document.getElementById('todo-list');
+  tableBody.innerHTML = '';
+
+  if (filteredList.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="text-center text-gray-500 py-4">No matching tasks.</td>
+      </tr>`;
+    return;
+  }
+
+  filteredList.forEach((item, index) => {
+    const row = document.createElement('tr');
+    row.className = 'border-b border-gray-700 text-sm';
+
+    row.innerHTML = `
+      <td class="py-2 px-3">${item.task}</td>
+      <td class="py-2 px-3">${item.date}</td>
+      <td class="py-2 px-3">${item.status}</td>
+      <td class="py-2 px-3">
+        <button onclick="deleteTodo(${index})" class="text-red-400 hover:text-red-600 text-sm">
+          🗑️
         </button>
-        <button onclick="clearTodos();" class="bg-[#818cf8] hover:bg-indigo-400 text-white px-4 py-2 rounded-md">
-          DELETE ALL
-        </button>
-      </div>
+      </td>
+    `;
 
-      <!-- Todo Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-white bg-[#0f172a] rounded-md">
-          <thead>
-            <tr class="text-sm text-gray-400 border-b border-gray-600">
-              <th class="py-2 px-3">TASK</th>
-              <th class="py-2 px-3">DUE DATE</th>
-              <th class="py-2 px-3">STATUS</th>
-              <th class="py-2 px-3">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody id="todo-list">
-            <tr>
-              <td colspan="4" class="text-center text-gray-500 py-4">No task found.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </main>
+    tableBody.appendChild(row);
+  });
+}
 
-  <!-- JS -->
-  <script src="js/script.js"></script>
-</body>
-
-</html>
